@@ -75,7 +75,7 @@ Inside Gemini CLI:
 Expected results:
 
 - Extension list shows `alis-build`.
-- MCP list shows `alis-build` configured for `https://mcp.alis.build/mcp`.
+- MCP list shows `alis-build` configured for `https://mcp.alis.build`.
 - Agent list shows `alis-build-agent`.
 - First MCP use triggers or reuses OIDC login through `https://identity.alisx.com`.
 - Agent use also triggers OIDC login through the same public OAuth client.
@@ -110,7 +110,7 @@ Gemini CLI OAuth takeaways for this extension:
 - `httpUrl` selects Streamable HTTP transport.
 - `authProviderType: "dynamic_discovery"` lets Gemini discover OAuth/OIDC metadata from the remote MCP server.
 - `oauth.enabled: true` makes the auth requirement explicit.
-- `oauth.clientId` is required because `https://mcp.alis.build/mcp` does not support dynamic client registration.
+- `oauth.clientId` is required because `https://mcp.alis.build` does not support dynamic client registration.
 - The OAuth client allows loopback redirects, so Gemini can use its default localhost callback port.
 - `oauth.scopes` declares the required Alis Build scopes: `build:read` and `build:write`.
 - The remote agent auth block uses the same public client ID and scopes.
