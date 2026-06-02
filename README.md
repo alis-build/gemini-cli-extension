@@ -16,29 +16,15 @@ This first release does not include custom slash commands or Agent Skills.
 - Network access to `https://mcp.alis.build`
 - Network access to `https://agent.alis.build`
 - Network access to the OIDC identity provider at `https://identity.alisx.com`
-- OAuth client credentials registered with redirect URI `http://localhost:7777/oauth/callback`
+- OAuth client `cac878c2-ae88-47d4-89dc-3815ff556821` registered for loopback redirect URIs, including `http://localhost:*`
 - An Alis Build account that can grant these OIDC scopes:
   - `build:read`
   - `build:write`
-  - `ideas:read`
-  - `ideas:write`
 
 ## Install
 
 ```sh
 gemini extensions install https://github.com/alis-build/gemini-cli-extension
-```
-
-During install, Gemini CLI prompts for the extension settings:
-
-- `Alis Build OAuth Client ID`
-- `Alis Build OAuth Client Secret`
-
-`gemini extensions install` does not currently support passing these values as command-line arguments. If you skipped settings during install, configure them afterwards:
-
-```sh
-gemini extensions config alis-build "Alis Build OAuth Client ID"
-gemini extensions config alis-build "Alis Build OAuth Client Secret"
 ```
 
 Restart Gemini CLI after installing.
@@ -51,31 +37,23 @@ From this repository:
 gemini extensions link .
 ```
 
-Configure OAuth credentials:
-
-```sh
-gemini extensions config alis-build "Alis Build OAuth Client ID"
-gemini extensions config alis-build "Alis Build OAuth Client Secret"
-```
-
 Restart Gemini CLI after linking or changing extension files.
 
 ## OAuth Setup
 
 The MCP server and remote agent both use OAuth/OIDC through `https://identity.alisx.com`.
 
-The OAuth client must allow this redirect URI:
+The OAuth client must allow loopback redirect URIs:
 
 ```text
-http://localhost:7777/oauth/callback
+http://localhost:*
 ```
 
-The extension reads credentials from Gemini extension settings:
+The extension uses this public OAuth client ID:
 
-- `ALIS_BUILD_OIDC_CLIENT_ID`
-- `ALIS_BUILD_OIDC_CLIENT_SECRET`
-
-The client secret is marked sensitive in `gemini-extension.json`; do not commit concrete client secrets to this repository.
+```text
+cac878c2-ae88-47d4-89dc-3815ff556821
+```
 
 ## Verify
 
@@ -99,8 +77,9 @@ Expected results:
 - Extension list shows `alis-build`.
 - MCP list shows `alis-build` configured for `https://mcp.alis.build/mcp`.
 - Agent list shows `alis-build-agent`.
-- First MCP or agent use triggers or reuses OIDC login through `https://identity.alisx.com`.
-- The MCP server and remote agent use OAuth client credentials from extension settings and the same Alis Build scopes.
+- First MCP use triggers or reuses OIDC login through `https://identity.alisx.com`.
+- Agent use also triggers OIDC login through the same public OAuth client.
+- The MCP server and remote agent use the same Alis Build scopes.
 
 If authentication does not start automatically, run this inside Gemini CLI:
 
@@ -132,12 +111,11 @@ Gemini CLI OAuth takeaways for this extension:
 - `authProviderType: "dynamic_discovery"` lets Gemini discover OAuth/OIDC metadata from the remote MCP server.
 - `oauth.enabled: true` makes the auth requirement explicit.
 - `oauth.clientId` is required because `https://mcp.alis.build/mcp` does not support dynamic client registration.
-- `oauth.clientSecret` is read from the sensitive `Alis Build OAuth Client Secret` extension setting.
-- `oauth.redirectUri` is fixed to `http://localhost:7777/oauth/callback` because `identity.alisx.com` rejected Gemini's default random localhost callback.
-- `oauth.scopes` declares the required Alis Build scopes: `build:read`, `build:write`, `ideas:read`, and `ideas:write`.
-- The remote agent auth block uses the same env-backed client credentials and scopes.
+- The OAuth client allows loopback redirects, so Gemini can use its default localhost callback port.
+- `oauth.scopes` declares the required Alis Build scopes: `build:read` and `build:write`.
+- The remote agent auth block uses the same public client ID and scopes.
 - Users can trigger or repair auth with `/mcp auth alis-build`.
 - OAuth needs local browser access and a localhost callback receiver.
 - Gemini stores MCP OAuth tokens under `~/.gemini/mcp-oauth-tokens.json`.
 
-Do not commit private OIDC client secrets to this repository. OAuth credentials are provided through Gemini extension settings.
+This extension uses PKCE and does not require a client secret.

@@ -1,22 +1,9 @@
 {
   "name": "alis-build",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Alis Build tools, agent, context, and workflows for Gemini CLI.",
   "contextFileName": "GEMINI.md",
-  "settings": [
-    {
-      "name": "Alis Build OAuth Client ID",
-      "description": "OAuth client ID registered for Gemini CLI access to Alis Build.",
-      "envVar": "ALIS_BUILD_OIDC_CLIENT_ID",
-      "sensitive": false
-    },
-    {
-      "name": "Alis Build OAuth Client Secret",
-      "description": "OAuth client secret registered for Gemini CLI access to Alis Build.",
-      "envVar": "ALIS_BUILD_OIDC_CLIENT_SECRET",
-      "sensitive": true
-    }
-  ],
+  "settings": [],
   "mcpServers": {
     "alis-build": {
       "httpUrl": "https://mcp.alis.build/mcp",
@@ -24,12 +11,10 @@
       "timeout": 600000,
       "oauth": {
         "enabled": true,
-        "clientId": "$ALIS_BUILD_OIDC_CLIENT_ID",
-        "clientSecret": "$ALIS_BUILD_OIDC_CLIENT_SECRET",
+        "clientId": "cac878c2-ae88-47d4-89dc-3815ff556821",
         "authorizationUrl": "https://identity.alisx.com/authorize",
         "tokenUrl": "https://identity.alisx.com/token",
-        "redirectUri": "http://localhost:7777/oauth/callback",
-        "scopes": ["build:read", "build:write", "ideas:read", "ideas:write"]
+        "scopes": ["build:read", "build:write"]
       }
     }
   }
