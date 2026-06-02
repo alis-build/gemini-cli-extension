@@ -1,27 +1,33 @@
 # Alis Build Gemini CLI Extension
 
-Gemini CLI extension for Alis Build. It bundles:
+<p align="center">
+  <img src="assets/connectivity.svg" alt="Gemini CLI connected to Alis Build" width="760">
+</p>
 
-- Remote MCP server configuration for `https://mcp.alis.build`
-- Remote Alis Build sub-agent at `https://agent.alis.build`
-- Alis Build context in `GEMINI.md`
+<p align="center">
+  <strong>Connect Gemini CLI to Alis Build.</strong>
+</p>
 
-This extension is Gemini CLI only.
+Use this extension to let Gemini CLI inspect Alis Build landing zones, products, neurons, builds, deploys, and related workspace context.
 
-This first release does not include custom slash commands or Agent Skills.
+## What You Get
 
-## Prerequisites
+- A preconfigured Gemini CLI MCP server for `https://mcp.alis.build`
+- A remote Alis Build agent at `https://agent.alis.build`
+- OAuth/OIDC sign-in through `https://identity.alisx.com`
+- Alis Build context loaded from `GEMINI.md`
 
-- Gemini CLI
-- Network access to `https://mcp.alis.build`
-- Network access to `https://agent.alis.build`
-- Network access to the OIDC identity provider at `https://identity.alisx.com`
-- OAuth client `cac878c2-ae88-47d4-89dc-3815ff556821` registered for loopback redirect URIs, including `http://localhost:*`
-- An Alis Build account that can grant these OIDC scopes:
-  - `build:read`
-  - `build:write`
+## Before You Start
+
+You need:
+
+- Gemini CLI installed
+- An Alis Build account with access to the landing zones and products you want to use
+- Network access to `https://mcp.alis.build`, `https://agent.alis.build`, and `https://identity.alisx.com`
 
 ## Install
+
+Install the extension:
 
 ```sh
 gemini extensions install https://github.com/alis-build/gemini-cli-extension
@@ -29,65 +35,41 @@ gemini extensions install https://github.com/alis-build/gemini-cli-extension
 
 Restart Gemini CLI after installing.
 
-## Local Development
+## Sign In
 
-From this repository:
-
-```sh
-gemini extensions link .
-```
-
-Restart Gemini CLI after linking or changing extension files.
-
-## OAuth Setup
-
-The MCP server and remote agent both use OAuth/OIDC through `https://identity.alisx.com`.
-
-The OAuth client must allow loopback redirect URIs:
+Inside Gemini CLI, run:
 
 ```text
-http://localhost:*
+/mcp auth alis-build
 ```
 
-The extension uses this public OAuth client ID:
-
-```text
-cac878c2-ae88-47d4-89dc-3815ff556821
-```
-
-## Verify
-
-From the terminal:
-
-```sh
-gemini mcp list
-```
-
-Inside Gemini CLI:
+You can also inspect the configured integration:
 
 ```text
 /extensions list
 /mcp
-/mcp auth alis-build
 /agents list
 ```
 
-Expected results:
+You should see:
 
-- Extension list shows `alis-build`.
-- MCP list shows `alis-build` configured for `https://mcp.alis.build`.
-- Agent list shows `alis-build-agent`.
-- First MCP use triggers or reuses OIDC login through `https://identity.alisx.com`.
-- Agent use also triggers OIDC login through the same public OAuth client.
-- The MCP server and remote agent use the same Alis Build scopes.
+- extension `alis-build`
+- MCP server `alis-build` configured for `https://mcp.alis.build`
+- agent `alis-build-agent`
 
-If authentication does not start automatically, run this inside Gemini CLI:
+The sign-in flow opens `https://identity.alisx.com` in your browser.
+
+## Use It
+
+After sign-in, ask Gemini CLI to use Alis Build:
 
 ```text
-/mcp auth alis-build
+Use Alis Build to list the landing zones I can access.
 ```
 
-## Remote Agent
+```text
+Show recent builds for product os in landing zone alis.
+```
 
 ```text
 @alis-build-agent Review my active Alis Build workspace and suggest the next build or deploy action.
@@ -95,27 +77,24 @@ If authentication does not start automatically, run this inside Gemini CLI:
 
 ## Update
 
+Update the extension:
+
 ```sh
 gemini extensions update alis-build
 ```
 
 Restart Gemini CLI after updating.
 
-## Notes
+## Troubleshooting
 
-The extension exposes all tools advertised by the Alis Build MCP server. It does not filter or exclude MCP tools.
+If the extension does not appear in `/extensions list`, install it again:
 
-Gemini CLI OAuth takeaways for this extension:
+```sh
+gemini extensions install https://github.com/alis-build/gemini-cli-extension
+```
 
-- `httpUrl` selects Streamable HTTP transport.
-- `authProviderType: "dynamic_discovery"` lets Gemini discover OAuth/OIDC metadata from the remote MCP server.
-- `oauth.enabled: true` makes the auth requirement explicit.
-- `oauth.clientId` is required because `https://mcp.alis.build` does not support dynamic client registration.
-- The OAuth client allows loopback redirects, so Gemini can use its default localhost callback port.
-- `oauth.scopes` declares the required Alis Build scopes: `build:read` and `build:write`.
-- The remote agent auth block uses the same public client ID and scopes.
-- Users can trigger or repair auth with `/mcp auth alis-build`.
-- OAuth needs local browser access and a localhost callback receiver.
-- Gemini stores MCP OAuth tokens under `~/.gemini/mcp-oauth-tokens.json`.
+If sign-in fails, confirm that you can reach `https://mcp.alis.build`, `https://agent.alis.build`, and `https://identity.alisx.com`, then run:
 
-This extension uses PKCE and does not require a client secret.
+```text
+/mcp auth alis-build
+```
