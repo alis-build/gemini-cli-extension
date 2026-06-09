@@ -1,0 +1,4 @@
+description = "Add a synchronous proto-backed tool to an ADK-Go agent."
+prompt = """
+Use the Alis Build MCP and the adk-add-tool skill to add a synchronous proto-backed tool to this ADK-Go agent. Update tools.proto, wait for define and dependency installation, implement the handler, register MyTools, and run focused verification.
+"""

@@ -75,6 +75,21 @@ Show recent builds for product os in landing zone alis.
 @alis-build-agent Review my active Alis Build workspace and suggest the next build or deploy action.
 ```
 
+## Agent Commands
+
+This extension includes ADK-Go agent workflow shortcuts:
+
+```text
+/getting-started
+/agent:add-runtime-agent-skills
+/agent:add-agui
+/agent:add-lro
+/agent:add-scheduler
+/agent:add-tool
+```
+
+The agent commands mirror the suggested prompts from the Alis Build Agent flow. `/getting-started` uses the Alis Build `getting-started` skill for the platform workflow and simpleapi quickstart. After updating a linked extension, run `/commands reload` or restart Gemini CLI.
+
 ## Update
 
 Update the extension:

@@ -1,0 +1,4 @@
+description = "Add the A2A scheduler extension to an ADK-Go agent."
+prompt = """
+Use the Alis Build MCP and the adk-add-scheduler skill to add the A2A scheduler extension to this ADK-Go agent. Wire internal/scheduler, Cloud Tasks and Spanner config, the scheduler interceptor, launcher args, and build verification.
+"""
