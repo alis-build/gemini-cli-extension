@@ -1,4 +1,0 @@
-description = "Enable AG-UI support for an ADK-Go agent."
-prompt = """
-Use the Alis Build MCP and the adk-add-agui skill to enable AG-UI for this ADK-Go agent. Wire the AG-UI web sublauncher, update the runtime launcher args, keep the service id aligned with infra, and verify the SSE endpoint is available.
-"""

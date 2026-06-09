@@ -1,0 +1,14 @@
+description = "Alias for build-it: find the right Alis Build skill to fix or build something."
+prompt = """
+Treat this as the fix it alias for build it.
+
+Use the Alis Build MCP SkillTools flow to help me fix or build the thing I want.
+
+First infer what I want fixed or built from the current request, visible errors, and workspace context. If the goal is still ambiguous, ask exactly one concise clarification question: "What exactly should Alis fix or build?"
+
+Once the goal is clear, call SearchSkills with the clarified goal as the query. SearchSkills must be the first SkillTools discovery call. Present the returned queried_skills in a concise table with columns for number, skill id, description, and when to choose it. Ask me which skill to use before loading or executing any specialized workflow.
+
+If SearchSkills returns no results, call ListSkills as the backup and present the available skills. If no listed skill fits the goal, ask whether I want to request a new skill. If I agree, call RequestSkill with display_name, description, use_case, and notes. The current RequestSkill implementation emails the Alis Build team for review.
+
+Do not trigger builds, defines, deploys, commits, or code edits from this router step. After I choose a skill, load that skill and follow its instructions.
+"""
