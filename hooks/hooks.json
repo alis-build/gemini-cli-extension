@@ -1,0 +1,32 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "name": "alis-dbd-primer",
+            "type": "command",
+            "command": "${extensionPath}${/}hooks${/}dbd-primer.sh",
+            "timeout": 5000,
+            "description": "Inject the Alis Build DBD primer inside an alis.build workspace."
+          }
+        ]
+      }
+    ],
+    "BeforeTool": [
+      {
+        "matcher": ".*LoadSkill$",
+        "hooks": [
+          {
+            "name": "alis-inject-skill-session-id",
+            "type": "command",
+            "command": "${extensionPath}${/}hooks${/}inject-skill-session-id.sh",
+            "timeout": 5000,
+            "description": "Merge the Gemini session_id into Alis LoadSkill MCP calls."
+          }
+        ]
+      }
+    ]
+  }
+}
