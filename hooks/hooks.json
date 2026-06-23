@@ -1,15 +1,15 @@
 {
   "hooks": {
-    "SessionStart": [
+    "BeforeAgent": [
       {
         "matcher": "*",
         "hooks": [
           {
-            "name": "alis-dbd-primer",
+            "name": "alis-route-triggers",
             "type": "command",
-            "command": "${extensionPath}${/}hooks${/}dbd-primer.sh",
+            "command": "${extensionPath}${/}hooks${/}route-alis-triggers.sh",
             "timeout": 5000,
-            "description": "Inject the Alis Build DBD primer inside an alis.build workspace."
+            "description": "When the user addresses Alis ('alis, ...'), inject the DBD primer and skill-routing contract."
           }
         ]
       }
