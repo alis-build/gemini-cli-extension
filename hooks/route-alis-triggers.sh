@@ -1,29 +1,18 @@
 #!/usr/bin/env bash
-# BeforeAgent hook: keep the Alis Build routing contract in front of the model
-# once the user has engaged Alis, and load the Define->Build->Deploy primer on
-# the engaging turn.
+# BeforeAgent hook: when the user addresses Alis (a vocative "alis, ..."), inject
+# the Define->Build->Deploy primer and the Alis Build routing contract.
 #
 # BeforeAgent is Gemini CLI's user-prompt-submit event: it fires after the user
 # submits a prompt and before agent planning. The payload (JSON on stdin)
-# carries the prompt text in `.prompt` and the session in `.session_id`.
+# carries the prompt text in `.prompt`.
 #
-# Why "sticky": a hook injects per-turn, not as a standing instruction, so a
-# routing contract injected once on "alis, ..." goes stale and later build/fix
-# requests (often phrased without any trigger word, e.g. "could you help adding
-# tracing?") get treated as plain coding tasks. So:
-#
-#   * vocative "alis" (e.g. "alis, ...", "ask alis to ...") -> inject the DBD
-#     primer AND the full routing contract, and mark this session as
-#     Alis-engaged.
-#   * any later turn in an Alis-engaged session -> inject a terse one-block
-#     reminder only (the full contract was already provided on the engaging
-#     turn), so the router stays live without repeating the whole block or the
-#     primer every turn.
-#   * sessions where the user never addressed Alis -> inject nothing.
-#
-# The routing reminder is self-scoping (it only activates the router for
-# build/fix-shaped Alis Build requests), and reinforces GEMINI.md's standing
-# rule. Not gated on an ~/alis.build workspace.
+# We inject ONLY when the user addresses Alis — "alis" is the explicit trigger
+# word. The injected contract tells the model to keep routing build/fix work
+# through SearchSkills for the rest of the session (reinforcing GEMINI.md's
+# standing rule), so the user need not repeat "alis" every turn; but no context
+# is injected on turns that do not address Alis. Vocative "alis" matches anywhere
+# in the prompt (e.g. "could you help add X, alis?"). Not gated on an
+# ~/alis.build workspace.
 #
 # Unlike Claude Code / Codex (which append a hook's raw stdout to context),
 # Gemini CLI requires the only stdout to be a single JSON object. The context is
@@ -44,39 +33,20 @@ lc="$(printf '%s' "$prompt" | tr '[:upper:]' '[:lower:]')"
 # Vocative "Alis" (addressing the agent), e.g. "alis,", "alis:", "hey alis",
 # "ask alis", "alis please/could/can/help ...". Deliberately does NOT match bare
 # platform mentions like "Use Alis Build to list landing zones".
-alis_vocative='(^|[^[:alnum:]])alis[[:space:]]*[,:]|(^|[^[:alnum:]])(hey|hi|ask)[[:space:]]+alis([^[:alnum:]]|$)|(^|[^[:alnum:]])alis[[:space:]]+(please|pls|could|can|would|will|help)([^[:alnum:]]|$)'
+alis_vocative='(^|[^[:alnum:]])alis[[:space:]]*[,:]|(^|[^[:alnum:]])(hey|hi|ask)[[:space:]]+alis([^[:alnum:]]|$)|(^|[^[:alnum:]])alis[[:space:]]+(please|pls|could|can|would|will|help)([^[:alnum:]]|$)|,[[:space:]]*alis[[:space:]]*[?!.]*$|[[:space:]]alis[[:space:]]*[?!]'
 
-# Pure acknowledgements / pleasantries. A follow-up whose WHOLE text is one of
-# these needs no routing context, so the sticky reminder is suppressed for it.
-# Anything more than a bare acknowledgement still gets the reminder, so real
-# (even obliquely phrased) requests are never missed.
-trivial_ack='^((thanks?|thank you|thanks a lot|thx|ty|tysm|ok|okay|k|kk|cool|nice|great|perfect|awesome|excellent|got it|gotcha|makes sense|sure|yep|yeah|yes|y|nope|no|n|sounds good|sg|will do|done|cheers|ta|np)[[:space:]!.,]*)+$'
+printf '%s' "$lc" | grep -Eq "$alis_vocative" || exit 0
 
-# Per-session marker so the routing contract stays sticky after the first "alis".
-session_id="$(printf '%s' "$payload" | jq -r '.session_id // empty' 2>/dev/null || true)"
-marker=""
-if [ -n "$session_id" ]; then
-  safe="$(printf '%s' "$session_id" | tr -cd 'A-Za-z0-9._-')"
-  [ -n "$safe" ] && marker="${TMPDIR:-/tmp}/alis-routing/${safe}"
-fi
+# Resolve the extension root: prefer the substituted env var, else derive from
+# this script's location (hooks/ -> extension root).
+ext_root="${extensionPath:-$(cd "$(dirname "$0")/.." && pwd)}"
+primer="$(cat "${ext_root}/context/dbd-primer.md" 2>/dev/null || true)"
 
-emit_primer=false
-if printf '%s' "$lc" | grep -Eq "$alis_vocative"; then
-  emit_primer=true
-  if [ -n "$marker" ]; then
-    mkdir -p "$(dirname "$marker")" 2>/dev/null || true
-    : > "$marker" 2>/dev/null || true
-  fi
-elif [ -n "$marker" ] && [ -f "$marker" ]; then
-  emit_primer=false
-else
-  exit 0
-fi
-
-read -r -d '' routing_full <<'EOF' || true
+read -r -d '' routing <<'EOF' || true
 <alis-routing>
-Alis Build routing contract — the user has engaged Alis this session. Keep this
-in mind for this and the following turns:
+Alis Build routing contract — the user has engaged Alis. Keep this in mind for
+this and the following turns of the session, even if they do not say "alis"
+again:
 
 - "build it" / "fix it", or any request to build, fix, add, or change something
   on the Alis Build platform — including naturally phrased asks like "could you
@@ -95,34 +65,16 @@ in mind for this and the following turns:
   SearchSkills. It needs no arguments (session context is resolved server-side);
   pass `build_spec` only when the user names an existing one to append to. Report
   the returned BuildSpec back to the user.
+
+Whenever a later request in this session would benefit from an Alis Build skill,
+use `SearchSkills` to discover one before doing the work yourself.
 </alis-routing>
 EOF
 
-read -r -d '' routing_terse <<'EOF' || true
-<alis-routing>
-Alis Build router active (full contract was provided earlier this session). Any
-request to build, fix, add, or change something on the Alis Build platform →
-call `SearchSkills` FIRST and do NOT inspect or edit code, run
-Define / Build / Deploy, or commit before a skill is loaded. "spec it" → call
-`SpecIt` directly.
-</alis-routing>
-EOF
+# DBD framing first (the mental model), then the actionable routing contract.
+context="${primer:+$primer
 
-if $emit_primer; then
-  # DBD framing first (the mental model), then the full routing contract.
-  ext_root="${extensionPath:-$(cd "$(dirname "$0")/.." && pwd)}"
-  primer="$(cat "${ext_root}/context/dbd-primer.md" 2>/dev/null || true)"
-  context="${primer:+$primer
-
-}${routing_full}"
-else
-  # Follow-up in an engaged session. Skip pure acknowledgements/pleasantries
-  # ("thanks", "ok", ...) — they need no routing context. Otherwise emit a terse
-  # reminder (the full contract was given on the engaging turn).
-  trimmed="$(printf '%s' "$lc" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
-  printf '%s' "$trimmed" | grep -Eq "$trivial_ack" && exit 0
-  context="$routing_terse"
-fi
+}${routing}"
 
 jq -n --arg c "$context" \
   '{hookSpecificOutput: {hookEventName: "BeforeAgent", additionalContext: $c}}'
