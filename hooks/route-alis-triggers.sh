@@ -13,13 +13,15 @@
 # tracing?") get treated as plain coding tasks. So:
 #
 #   * vocative "alis" (e.g. "alis, ...", "ask alis to ...") -> inject the DBD
-#     primer AND the routing contract, and mark this session as Alis-engaged.
-#   * any later turn in an Alis-engaged session -> re-inject the routing contract
-#     only (no primer), so follow-up build/fix/help requests route through
-#     SearchSkills instead of going straight to code.
+#     primer AND the full routing contract, and mark this session as
+#     Alis-engaged.
+#   * any later turn in an Alis-engaged session -> inject a terse one-block
+#     reminder only (the full contract was already provided on the engaging
+#     turn), so the router stays live without repeating the whole block or the
+#     primer every turn.
 #   * sessions where the user never addressed Alis -> inject nothing.
 #
-# The routing contract is self-scoping (it only activates the router for
+# The routing reminder is self-scoping (it only activates the router for
 # build/fix-shaped Alis Build requests), and reinforces GEMINI.md's standing
 # rule. Not gated on an ~/alis.build workspace.
 #
@@ -65,15 +67,7 @@ else
   exit 0
 fi
 
-# Resolve the extension root: prefer the substituted env var, else derive from
-# this script's location (hooks/ -> extension root).
-ext_root="${extensionPath:-$(cd "$(dirname "$0")/.." && pwd)}"
-primer=""
-if $emit_primer; then
-  primer="$(cat "${ext_root}/context/dbd-primer.md" 2>/dev/null || true)"
-fi
-
-read -r -d '' routing <<'EOF' || true
+read -r -d '' routing_full <<'EOF' || true
 <alis-routing>
 Alis Build routing contract — the user has engaged Alis this session. Keep this
 in mind for this and the following turns:
@@ -98,10 +92,26 @@ in mind for this and the following turns:
 </alis-routing>
 EOF
 
-# DBD framing first (the mental model), then the actionable routing contract.
-context="${primer:+$primer
+read -r -d '' routing_terse <<'EOF' || true
+<alis-routing>
+Alis Build router active (full contract was provided earlier this session). Any
+request to build, fix, add, or change something on the Alis Build platform →
+call `SearchSkills` FIRST and do NOT inspect or edit code, run
+Define / Build / Deploy, or commit before a skill is loaded. "spec it" → call
+`SpecIt` directly.
+</alis-routing>
+EOF
 
-}${routing}"
+if $emit_primer; then
+  # DBD framing first (the mental model), then the full routing contract.
+  ext_root="${extensionPath:-$(cd "$(dirname "$0")/.." && pwd)}"
+  primer="$(cat "${ext_root}/context/dbd-primer.md" 2>/dev/null || true)"
+  context="${primer:+$primer
+
+}${routing_full}"
+else
+  context="$routing_terse"
+fi
 
 jq -n --arg c "$context" \
   '{hookSpecificOutput: {hookEventName: "BeforeAgent", additionalContext: $c}}'
