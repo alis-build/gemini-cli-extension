@@ -15,8 +15,7 @@ Use this extension to let Gemini CLI inspect Alis Build landing zones, products,
 - A preconfigured Gemini CLI MCP server for `https://mcp.alis.build`
 - A remote Alis Build agent at `https://agent.alis.build`
 - OAuth/OIDC sign-in through `https://identity.alisx.com`
-- Alis Build context loaded from `GEMINI.md`
-- A `BeforeAgent` hook that injects the Alis Build Define-Build-Deploy primer and skill-routing contract when you address Alis (`alis, ...`)
+- The standing Alis Build Define-Build-Deploy primer (mental model + skill-routing contract + CLI-first execution) always loaded from `GEMINI.md`
 - A `BeforeTool` hook that passes your session context to Alis `LoadSkill` calls for context-aware skills
 
 ## Before You Start
@@ -101,10 +100,9 @@ Type `build it` to discover the right Alis Build skill for the thing you want to
 
 This extension bundles hooks (in `hooks/hooks.json`) that run automatically — no setup required:
 
-- **Trigger routing + DBD primer (`BeforeAgent`)** — when you address Alis (`alis, ...`), the Alis Build Define-Build-Deploy primer and the skill-routing contract (build/fix → discover via `SearchSkills` first, don't edit code directly; `spec it` → call `SpecIt` directly) are injected into context. Once injected, follow-up `build it` / `fix it` / `spec it` are handled from that context — they don't re-inject. Other prompts add nothing, in any directory.
 - **Skill session context (`BeforeTool`)** — before an Alis `LoadSkill` call runs, your Gemini `session_id` is merged into the request so the Alis Build server can return context-aware skill instructions.
 
-Both hooks require `jq` on your `PATH`. If `jq` is unavailable they exit cleanly and the CLI proceeds unmodified.
+The DBD primer and skill-routing contract are no longer injected by a hook — they live in `GEMINI.md`, which Gemini loads as standing context every session. The `BeforeTool` hook requires `jq` on your `PATH`; if `jq` is unavailable it exits cleanly and the CLI proceeds unmodified.
 
 ## Update
 

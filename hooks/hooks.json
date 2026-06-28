@@ -1,19 +1,5 @@
 {
   "hooks": {
-    "BeforeAgent": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "name": "alis-route-triggers",
-            "type": "command",
-            "command": "${extensionPath}${/}hooks${/}route-alis-triggers.sh",
-            "timeout": 5000,
-            "description": "When the user addresses Alis ('alis, ...'), inject the DBD primer and skill-routing contract."
-          }
-        ]
-      }
-    ],
     "BeforeTool": [
       {
         "matcher": ".*(LoadSkill|SpecIt)$",
