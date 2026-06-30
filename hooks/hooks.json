@@ -1,5 +1,18 @@
 {
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "name": "alis-inject-service-context",
+            "type": "command",
+            "command": "${extensionPath}${/}hooks${/}inject-service-context.sh",
+            "timeout": 5000,
+            "description": "Point Alis Build service folders to their definitions/implementation counterpart and package id."
+          }
+        ]
+      }
+    ],
     "BeforeTool": [
       {
         "matcher": ".*(LoadSkill|SpecIt)$",

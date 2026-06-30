@@ -101,6 +101,7 @@ Type `build it` to discover the right Alis Build skill for the thing you want to
 This extension bundles hooks (in `hooks/hooks.json`) that run automatically — no setup required:
 
 - **Skill session context (`BeforeTool`)** — before an Alis `LoadSkill` call runs, your Gemini `session_id` is merged into the request so the Alis Build server can return context-aware skill instructions.
+- **Service context (`SessionStart`)** — when a session opens inside an Alis Build service folder (`~/alis.build/<org>/build|define/…`), the package id and a pointer to the matching definitions ⇄ implementation counterpart are injected via `additionalContext`. Silent outside a workspace; requires `jq`.
 
 The DBD primer and skill-routing contract are no longer injected by a hook — they live in `GEMINI.md`, which Gemini loads as standing context every session. The `BeforeTool` hook requires `jq` on your `PATH`; if `jq` is unavailable it exits cleanly and the CLI proceeds unmodified.
 
