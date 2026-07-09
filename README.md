@@ -8,7 +8,7 @@
   <strong>Connect Gemini CLI to Alis Build.</strong>
 </p>
 
-Use this extension to let Gemini CLI inspect Alis Build landing zones, products, neurons, builds, deploys, and related workspace context.
+Use this extension to let Gemini CLI inspect Alis Build organisations, products, neurons, builds, deploys, and related workspace context.
 
 ## What You Get
 
@@ -23,7 +23,7 @@ Use this extension to let Gemini CLI inspect Alis Build landing zones, products,
 You need:
 
 - Gemini CLI installed
-- An Alis Build account with access to the landing zones and products you want to use
+- An Alis Build account with access to the organisations and products you want to use
 - Network access to `https://mcp.alis.build`, `https://agent.alis.build`, and `https://identity.alisx.com`
 
 ## Install
@@ -73,11 +73,11 @@ fix it
 ```
 
 ```text
-Use Alis Build to list the landing zones I can access.
+Use Alis Build to list the organisations I can access.
 ```
 
 ```text
-Show recent builds for product os in landing zone alis.
+Show recent builds for product os in organisation alis.
 ```
 
 ```text
