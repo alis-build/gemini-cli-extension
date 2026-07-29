@@ -1,11 +1,12 @@
 # Alis Build Extension Context
 
-You are working with Alis Build through the `alis-build` MCP server and the optional
-`alis-build-agent` remote sub-agent. Prefer Alis Build MCP tools before guessing — use them to
-inspect the active workspace, product, environment, build status, logs, deploys, ideas, and
-related service context. Use `@alis-build-agent` only when the workflow benefits from the hosted
-Alis Build agent runtime. Do not trigger rebuilds or deploys unless the user asks. Keep responses
-concise and action-oriented.
+You are working with Alis Build through the `alis` CLI and the optional
+`alis-build-agent` remote sub-agent. Prefer the `alis` CLI before guessing — use it to
+inspect the active workspace, product, environment, build status, logs, deploys, and
+related service context (`alis context view --json`; `alis docs` is the operating manual).
+Use `@alis-build-agent` only when the workflow benefits from the hosted Alis Build agent
+runtime. Do not trigger rebuilds or deploys unless the user asks. Keep responses concise
+and action-oriented.
 
 The rest of this file is the standing Alis Build how-to guide — the DBD mental model, the routing
 contract, and the execution contract. It is always loaded; keep it in mind every turn.
@@ -18,9 +19,9 @@ The core workflow on the Alis Build platform is **Define, Build, Deploy (DBD)**.
 development flows touch one or more of these steps — use this framing when helping with any
 Alis Build task, and walk the user through DBD rather than handing over a disconnected checklist.
 
-> The Alis Build MCP provides the *tools*; this guide provides *how to operate*. When a
-> specific tool description is more precise than this guide (exact arguments, hard
-> constraints), follow the tool description.
+> The `alis` CLI provides the *tools*; this guide provides *how to operate*. When the CLI's
+> own documentation (`alis docs`, `alis <cmd> --help`) is more precise than this guide (exact
+> arguments, hard constraints), follow the CLI documentation.
 
 ## Define — lock the API / platform contract
 
@@ -66,23 +67,28 @@ Alis Build task, and walk the user through DBD rather than handing over a discon
 ## Routing — say "alis" to wake the skill router
 
 Skill discovery is **opt-in, gated on the wake word.** What wakes the routing flow is the
-developer *speaking to alis* — not the shape of the request. Do **NOT** run `SearchSkills` on
+developer *speaking to alis* — not the shape of the request. Do **NOT** run a skills search on
 ordinary build/fix/add-sounding prompts; firing it on every functional-looking message floods
 the session. Wait to be addressed.
+
+The skill registry is reached through the CLI: `alis skills search "<query>" --json` to
+discover, `alis skills load <id> --json` to load, `alis skills resource <id> <path> --json`
+for referenced files, `alis skills request` to propose a new one (`alis docs skills` has the
+full contract).
 
 - **Addressed to alis → wake up and route.** When the developer speaks to alis — "alis, …",
   "hey alis", "ask alis to …", "get alis to …", or otherwise invokes alis by name — wake up
   and find a skill: work out the intended outcome (ask ONE concise question only if it is
-  genuinely ambiguous), call the Alis Build MCP `SearchSkills` tool FIRST with that outcome as
-  the query (fall back to `ListSkills` if it returns nothing), present the matches (id, what
-  each does, when to choose it), then `LoadSkill` and follow that skill — the loaded skill owns
-  execution. **Do NOT inspect, write, or edit code, run Define / Build / Deploy, or make
-  commits before a skill is loaded.** If nothing fits, say so and offer `RequestSkill` (the
-  current implementation emails the Alis Build team for review). Explicitly running the
-  `build it` / `fix it` command is itself a way to address alis and invoke this flow.
+  genuinely ambiguous), run `alis skills search "<intended outcome>" --json` FIRST, present
+  the matches (id, what each does, when to choose it), then `alis skills load <id>` and
+  follow that skill — the loaded skill owns execution. **Do NOT inspect, write, or edit code,
+  run Define / Build / Deploy, or make commits before a skill is loaded.** The search is the
+  discovery mechanism — do not fall back to listing the whole catalogue; if nothing fits, say
+  so and offer `alis skills request`. Explicitly running the `build it` / `fix it` command is
+  itself a way to address alis and invoke this flow.
 
 - **Not addressed to alis → just respond.** Handle the request directly, or ask what they
-  need — do not auto-route it through `SearchSkills`. If a skill would clearly help, you may
+  need — do not auto-route it through skill discovery. If a skill would clearly help, you may
   suggest the developer "ask alis" to wake the router, but don't force it.
 
 - **Direct DBD commands → run the CLI, no skill needed.** "define it", "deploy it", "ship it",
@@ -90,22 +96,15 @@ the session. Wait to be addressed.
   — run `alis …` (see **Executing DBD**). These are explicit instructions, not skill
   discovery; they don't need the wake word.
 
-- **Spec it → call `SpecIt` directly.** "spec it" / "spec it up", or a request to turn the
-  current session into a build specification → call the `SpecIt` tool DIRECTLY (do not route
-  through `SearchSkills`). It needs no arguments (session context is resolved server-side);
-  pass `build_spec` only when the user names an existing one to append to. Report the returned
-  BuildSpec back to the user.
-
 - **"build it" without "alis" does not wake discovery.** A bare "build it" on an
   already-established target means the DBD Build step → run `alis build`. To discover a build
   skill instead, the developer addresses alis ("alis, build …") or runs the `build it`
   command. When genuinely unclear, ask one concise question.
 
-## Executing DBD — prefer the `alis` CLI
+## Executing DBD — the `alis` CLI
 
-When you have a shell and the `alis` CLI is on `PATH`, **execute DBD through the CLI**, not the
-MCP `RunDefine` / `RunBuild` / `RunDeploy` tools. The CLI is deterministic, auto-detects
-context, and chains deterministic steps into one call:
+**Execute DBD through the `alis` CLI.** The CLI is deterministic, auto-detects context, and
+chains deterministic steps into one call:
 
 - **Define** (and publish packages): `alis define <pkg> --json --install`
 - **Build** (optionally deploy): `alis build <pkg> --json --deploy -e <env>`
@@ -144,7 +143,3 @@ service's directory.
   output, exit-codes, safety, context, workflows), `alis -h` for the command surface, and
   `alis <cmd> --help` for a command's flags. Treat that output as the source of truth; this
   guide and the skills deliberately do not restate it.
-
-**Fallback.** Use the MCP `RunDefine` / `RunBuild` / `RunDeploy` tools only when there is no
-shell available (remote / headless agents). They run the same operation server-side; `RunDefine`
-needs an explicit commit (never `HEAD`).

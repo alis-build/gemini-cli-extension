@@ -1,12 +1,12 @@
 description = "Find the right Alis Build skill for what you want to build."
 prompt = """
-Use the Alis Build MCP SkillTools flow to help me build the thing I want.
+Run the Alis Build "build it" router with the `alis` CLI skills flow to help me build the thing I want.
 
 First infer what I want built from the current request and workspace context. If the build goal is still ambiguous, ask exactly one concise clarification question: "What exactly should Alis build?"
 
-Once the goal is clear, call SearchSkills with the clarified goal as the query. SearchSkills must be the first SkillTools discovery call. Present the returned queried_skills in a concise table with columns for number, skill id, description, and when to choose it. Ask me which skill to use before loading or executing any specialized workflow.
+Once the goal is clear, run `alis skills search "<clarified goal>" --json`. The search must be the first discovery step. Present the returned skills in a concise table with columns for number, skill id, description, and when to choose it. Ask me which skill to use before loading or executing any specialized workflow.
 
-If SearchSkills returns no results, call ListSkills as the backup and present the available skills. If no listed skill fits the goal, ask whether I want to request a new skill. If I agree, call RequestSkill with display_name, description, use_case, and notes. The current RequestSkill implementation emails the Alis Build team for review.
+If the search returns no results, say so and ask whether I want to request a new skill — do not fall back to listing the whole catalogue. If I agree, run `alis skills request`, which asks the Alis Build team for review.
 
-Do not trigger builds, defines, deploys, commits, or code edits from this router step. After I choose a skill, load that skill and follow its instructions.
+Do not trigger builds, defines, deploys, commits, or code edits from this router step. After I choose a skill, load it with `alis skills load <id>` and follow its instructions.
 """

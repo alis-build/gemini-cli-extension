@@ -1,21 +1,7 @@
 {
   "name": "alis-build",
-  "version": "0.10.0",
-  "description": "Alis Build tools, agent, context, and workflows for Gemini CLI.",
+  "version": "0.11.0",
+  "description": "Alis Build agent, context, and workflows for Gemini CLI.",
   "contextFileName": "GEMINI.md",
-  "settings": [],
-  "mcpServers": {
-    "alis-build": {
-      "httpUrl": "https://mcp.alis.build",
-      "authProviderType": "dynamic_discovery",
-      "timeout": 600000,
-      "oauth": {
-        "enabled": true,
-        "clientId": "cac878c2-ae88-47d4-89dc-3815ff556821",
-        "authorizationUrl": "https://identity.alisx.com/authorize",
-        "tokenUrl": "https://identity.alisx.com/token",
-        "scopes": ["build:read", "build:write"]
-      }
-    }
-  }
+  "settings": []
 }

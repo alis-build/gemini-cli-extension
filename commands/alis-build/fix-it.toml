@@ -2,13 +2,13 @@ description = "Alias for build-it: find the right Alis Build skill to fix or bui
 prompt = """
 Treat this as the fix it alias for build it.
 
-Use the Alis Build MCP SkillTools flow to help me fix or build the thing I want.
+Run the Alis Build "fix it" router with the `alis` CLI skills flow to help me fix or build the thing I want.
 
 First infer what I want fixed or built from the current request, visible errors, and workspace context. If the goal is still ambiguous, ask exactly one concise clarification question: "What exactly should Alis fix or build?"
 
-Once the goal is clear, call SearchSkills with the clarified goal as the query. SearchSkills must be the first SkillTools discovery call. Present the returned queried_skills in a concise table with columns for number, skill id, description, and when to choose it. Ask me which skill to use before loading or executing any specialized workflow.
+Once the goal is clear, run `alis skills search "<clarified goal>" --json`. The search must be the first discovery step. Present the returned skills in a concise table with columns for number, skill id, description, and when to choose it. Ask me which skill to use before loading or executing any specialized workflow.
 
-If SearchSkills returns no results, call ListSkills as the backup and present the available skills. If no listed skill fits the goal, ask whether I want to request a new skill. If I agree, call RequestSkill with display_name, description, use_case, and notes. The current RequestSkill implementation emails the Alis Build team for review.
+If the search returns no results, say so and ask whether I want to request a new skill — do not fall back to listing the whole catalogue. If I agree, run `alis skills request`, which asks the Alis Build team for review.
 
-Do not trigger builds, defines, deploys, commits, or code edits from this router step. After I choose a skill, load that skill and follow its instructions.
+Do not trigger builds, defines, deploys, commits, or code edits from this router step. After I choose a skill, load it with `alis skills load <id>` and follow its instructions.
 """

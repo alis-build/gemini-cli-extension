@@ -12,20 +12,6 @@
           }
         ]
       }
-    ],
-    "BeforeTool": [
-      {
-        "matcher": ".*(LoadSkill|SpecIt)$",
-        "hooks": [
-          {
-            "name": "alis-inject-skill-session-id",
-            "type": "command",
-            "command": "${extensionPath}${/}hooks${/}inject-skill-session-id.sh",
-            "timeout": 5000,
-            "description": "Merge the Gemini session_id into Alis LoadSkill and SpecIt MCP calls."
-          }
-        ]
-      }
     ]
   }
 }

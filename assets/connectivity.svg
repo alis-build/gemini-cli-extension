@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 320" role="img" aria-labelledby="title desc">
   <title id="title">Gemini CLI connected to Alis Build</title>
-  <desc id="desc">Gemini CLI connected to the Alis Build MCP server.</desc>
+  <desc id="desc">Gemini CLI connected to Alis Build.</desc>
 
   <defs>
     <filter id="node-shadow" x="-30%" y="-30%" width="160%" height="160%">

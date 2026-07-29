@@ -8,23 +8,22 @@
   <strong>Connect Gemini CLI to Alis Build.</strong>
 </p>
 
-Use this extension to let Gemini CLI inspect Alis Build organisations, products, neurons, builds, deploys, and related workspace context.
+Use this extension to let Gemini CLI work with Alis Build organisations, products, neurons, builds, and deploys through the `alis` CLI, with workspace-aware context injected into every session.
 
 ## What You Get
 
-- A preconfigured Gemini CLI MCP server for `https://mcp.alis.build`
-- A remote Alis Build agent at `https://agent.alis.build`
-- OAuth/OIDC sign-in through `https://identity.alisx.com`
 - The standing Alis Build Define-Build-Deploy primer (mental model + skill-routing contract + CLI-first execution) always loaded from `GEMINI.md`
-- A `BeforeTool` hook that passes your session context to Alis `LoadSkill` calls for context-aware skills
+- A remote Alis Build agent at `https://agent.alis.build`
+- A `SessionStart` hook that injects workspace service context inside Alis Build folders
 
 ## Before You Start
 
 You need:
 
 - Gemini CLI installed
+- The `alis` CLI installed, on your `PATH`, and signed in (`alis login`)
 - An Alis Build account with access to the organisations and products you want to use
-- Network access to `https://mcp.alis.build`, `https://agent.alis.build`, and `https://identity.alisx.com`
+- Network access to `https://agent.alis.build` and `https://identity.alisx.com` (for the remote agent)
 
 ## Install
 
@@ -36,33 +35,23 @@ gemini extensions install https://github.com/alis-build/gemini-cli-extension
 
 Restart Gemini CLI after installing.
 
-## Sign In
-
-Inside Gemini CLI, run:
-
-```text
-/mcp auth alis-build
-```
-
-You can also inspect the configured integration:
+You can inspect the configured integration:
 
 ```text
 /extensions list
-/mcp
 /agents list
 ```
 
 You should see:
 
 - extension `alis-build`
-- MCP server `alis-build` configured for `https://mcp.alis.build`
 - agent `alis-build-agent`
 
-The sign-in flow opens `https://identity.alisx.com` in your browser.
+The remote agent's sign-in flow opens `https://identity.alisx.com` in your browser on first use.
 
 ## Use It
 
-After sign-in, ask Gemini CLI to use Alis Build:
+Ask Gemini CLI to use Alis Build:
 
 ```text
 build it
@@ -100,10 +89,9 @@ Type `build it` to discover the right Alis Build skill for the thing you want to
 
 This extension bundles hooks (in `hooks/hooks.json`) that run automatically — no setup required:
 
-- **Skill session context (`BeforeTool`)** — before an Alis `LoadSkill` call runs, your Gemini `session_id` is merged into the request so the Alis Build server can return context-aware skill instructions.
-- **Service context (`SessionStart`)** — when a session opens inside an Alis Build service folder (`~/alis.build/<org>/build|define/…`), the package id and a pointer to the matching definitions ⇄ implementation counterpart are injected via `additionalContext`. Silent outside a workspace; requires `jq`.
+- **Service context (`SessionStart`)** — when a session opens inside an Alis Build service folder (`~/alis.build/<org>/build|define/…`), the package id and a pointer to the matching definitions ⇄ implementation counterpart are injected via `additionalContext`. Silent outside a workspace; requires `jq` — if `jq` is unavailable it exits cleanly and the CLI proceeds unmodified.
 
-The DBD primer and skill-routing contract are no longer injected by a hook — they live in `GEMINI.md`, which Gemini loads as standing context every session. The `BeforeTool` hook requires `jq` on your `PATH`; if `jq` is unavailable it exits cleanly and the CLI proceeds unmodified.
+The DBD primer and skill-routing contract are not injected by a hook — they live in `GEMINI.md`, which Gemini loads as standing context every session.
 
 ## Update
 
@@ -123,8 +111,6 @@ If the extension does not appear in `/extensions list`, install it again:
 gemini extensions install https://github.com/alis-build/gemini-cli-extension
 ```
 
-If sign-in fails, confirm that you can reach `https://mcp.alis.build`, `https://agent.alis.build`, and `https://identity.alisx.com`, then run:
+If `alis` commands fail with an auth error, run `alis login` (or `alis authorise <org>.<product>` for git/package credentials) and retry.
 
-```text
-/mcp auth alis-build
-```
+If the remote agent's sign-in fails, confirm that you can reach `https://agent.alis.build` and `https://identity.alisx.com`, then retry.
