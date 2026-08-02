@@ -1,6 +1,6 @@
 {
   "name": "alis-build",
-  "version": "0.11.0",
+  "version": "0.12.0",
   "description": "Alis Build agent, context, and workflows for Gemini CLI.",
   "contextFileName": "GEMINI.md",
   "settings": []
