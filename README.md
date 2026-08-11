@@ -12,7 +12,7 @@ Use this extension to let Gemini CLI work with Alis Build organisations, product
 
 ## What You Get
 
-- The standing Alis Build Define-Build-Deploy primer (mental model + skill-routing contract + CLI-first execution) always loaded from `GEMINI.md`
+- The standing Alis Build Define-Build-Deploy primer (mental model + native skill discovery + CLI-first execution) always loaded from `GEMINI.md`
 - A remote Alis Build agent at `https://agent.alis.build`
 - A `SessionStart` hook that injects workspace service context inside Alis Build folders
 
@@ -51,14 +51,14 @@ The remote agent's sign-in flow opens `https://identity.alisx.com` in your brows
 
 ## Use It
 
-Ask Gemini CLI to use Alis Build:
+Ask Gemini CLI to use Alis Build — just describe what you want:
 
 ```text
-build it
+/alis-build:discover
 ```
 
 ```text
-fix it
+Add a search endpoint to my orders service.
 ```
 
 ```text
@@ -78,12 +78,12 @@ Show recent builds for product os in organisation alis.
 This extension includes Alis Build workflow shortcuts:
 
 ```text
-/alis-build:build-it
-/alis-build:fix-it
+/alis-build:discover
+/alis-build:capture
 /alis-build:getting-started
 ```
 
-Type `build it` to discover the right Alis Build skill for the thing you want to build. Type `fix it` to use the same discovery flow when the goal is framed as a fix. `/alis-build:build-it` and `/alis-build:fix-it` are slash-command shortcuts for the same router. `/alis-build:getting-started` uses the Alis Build `getting-started` skill for the platform workflow and simpleapi quickstart. After updating a linked extension, run `/commands reload` or restart Gemini CLI.
+`/alis-build:discover` finds and loads the right Alis Build skill for what you want to do (via `alis skills search`) — the standing `GEMINI.md` context also tells the agent to use this flow whenever you simply describe platform-shaped work, so no wake word is needed. `/alis-build:capture` turns work just completed in the session into a reusable skill for your team (also triggered by saying "capture this as a skill"). `/alis-build:getting-started` uses the Alis Build `getting-started` skill for the platform workflow and simpleapi quickstart. After updating a linked extension, run `/commands reload` or restart Gemini CLI.
 
 ## Hooks
 
@@ -91,7 +91,7 @@ This extension bundles hooks (in `hooks/hooks.json`) that run automatically — 
 
 - **Service context (`SessionStart`)** — when a session opens inside an Alis Build service folder (`~/alis.build/<org>/build|define/…`), the package id and a pointer to the matching definitions ⇄ implementation counterpart are injected via `additionalContext`. Silent outside a workspace; requires `jq` — if `jq` is unavailable it exits cleanly and the CLI proceeds unmodified.
 
-The DBD primer and skill-routing contract are not injected by a hook — they live in `GEMINI.md`, which Gemini loads as standing context every session.
+The DBD primer and skills contract are not injected by a hook — they live in `GEMINI.md`, which Gemini loads as standing context every session.
 
 ## Update
 

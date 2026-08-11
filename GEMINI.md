@@ -8,8 +8,8 @@ Use `@alis-build-agent` only when the workflow benefits from the hosted Alis Bui
 runtime. Do not trigger rebuilds or deploys unless the user asks. Keep responses concise
 and action-oriented.
 
-The rest of this file is the standing Alis Build how-to guide — the DBD mental model, the routing
-contract, and the execution contract. It is always loaded; keep it in mind every turn.
+The rest of this file is the standing Alis Build how-to guide — the DBD mental model, the
+skills contract, and the execution contract. It is always loaded; keep it in mind every turn.
 
 ---
 
@@ -18,6 +18,14 @@ contract, and the execution contract. It is always loaded; keep it in mind every
 The core workflow on the Alis Build platform is **Define, Build, Deploy (DBD)**. Most
 development flows touch one or more of these steps — use this framing when helping with any
 Alis Build task, and walk the user through DBD rather than handing over a disconnected checklist.
+
+This guide is the standing how-to for Alis Build work. It carries three things:
+
+1. The **mental model** — what DBD is and where things live on disk.
+2. The **skills contract** — discovery is native: the `/alis-build:discover` command carries
+   the discovery flow, and its flow applies whenever the user describes platform-shaped work;
+   direct DBD commands run the CLI without a skill.
+3. The **execution contract** — how to actually run Define / Build / Deploy.
 
 > The `alis` CLI provides the *tools*; this guide provides *how to operate*. When the CLI's
 > own documentation (`alis docs`, `alis <cmd> --help`) is more precise than this guide (exact
@@ -69,42 +77,19 @@ Alis Build task, and walk the user through DBD rather than handing over a discon
 - Deploy makes the service reachable infrastructure (commonly Cloud Run plus supporting resources).
 - Validate end-to-end via the generated playground, usually `<neuron>/.playground/main_test.go`.
 
-## Routing — say "alis" to wake the skill router
+## Skills — discovery is native
 
-Skill discovery is **opt-in, gated on the wake word.** What wakes the routing flow is the
-developer *speaking to alis* — not the shape of the request. Do **NOT** run a skills search on
-ordinary build/fix/add-sounding prompts; firing it on every functional-looking message floods
-the session. Wait to be addressed.
+Skill discovery runs through the extension's `/alis-build:discover` command. The user does
+not need a wake word — they can simply describe what they want, and when the task is
+Alis-platform-shaped (products, neurons, blocks, protos and Define, builds, deploys, Spanner,
+Pub/Sub, Terraform under `infra/`) and no Alis skill is loaded yet, follow that command's
+flow to find and load the right registry skill. Once a skill is loaded, it owns execution.
 
-The skill registry is reached through the CLI: `alis skills search "<query>" --json` to
-discover, `alis skills load <id> --json` to load, `alis skills resource <id> <path> --json`
-for referenced files, `alis skills request` to propose a new one (`alis docs skills` has the
-full contract).
+Direct DBD commands ("define it", "build it", "deploy it" on an already-known target) are
+deterministic — run the `alis` CLI directly (see **Executing DBD**); no skill is needed.
 
-- **Addressed to alis → wake up and route.** When the developer speaks to alis — "alis, …",
-  "hey alis", "ask alis to …", "get alis to …", or otherwise invokes alis by name — wake up
-  and find a skill: work out the intended outcome (ask ONE concise question only if it is
-  genuinely ambiguous), run `alis skills search "<intended outcome>" --json` FIRST, present
-  the matches (id, what each does, when to choose it), then `alis skills load <id>` and
-  follow that skill — the loaded skill owns execution. **Do NOT inspect, write, or edit code,
-  run Define / Build / Deploy, or make commits before a skill is loaded.** The search is the
-  discovery mechanism — do not fall back to listing the whole catalogue; if nothing fits, say
-  so and offer `alis skills request`. Explicitly running the `build it` / `fix it` command is
-  itself a way to address alis and invoke this flow.
-
-- **Not addressed to alis → just respond.** Handle the request directly, or ask what they
-  need — do not auto-route it through skill discovery. If a skill would clearly help, you may
-  suggest the developer "ask alis" to wake the router, but don't force it.
-
-- **Direct DBD commands → run the CLI, no skill needed.** "define it", "deploy it", "ship it",
-  "run define/build/deploy", "define and install" on an already-known target are deterministic
-  — run `alis …` (see **Executing DBD**). These are explicit instructions, not skill
-  discovery; they don't need the wake word.
-
-- **"build it" without "alis" does not wake discovery.** A bare "build it" on an
-  already-established target means the DBD Build step → run `alis build`. To discover a build
-  skill instead, the developer addresses alis ("alis, build …") or runs the `build it`
-  command. When genuinely unclear, ask one concise question.
+After solving something new by hand, the user can say "capture this as a skill" — follow the
+`/alis-build:capture` flow to save it as a reusable skill for their team.
 
 ## Executing DBD — the `alis` CLI
 
@@ -149,3 +134,13 @@ service's directory.
   output, exit-codes, safety, context, workflows), `alis -h` for the command surface, and
   `alis <cmd> --help` for a command's flags. Treat that output as the source of truth; this
   guide and the skills deliberately do not restate it.
+
+## Google documentation — prefer the Developer Knowledge MCP
+
+When the Google Developer Knowledge MCP tools are available in this session
+(`search_documents`, `get_documents`, `answer_query`), prefer them over generic web search
+for Google-technology documentation — Google Cloud, Android, Flutter, Firebase, Go, web.dev,
+and other Google developer surfaces. They query Google's own documentation index and return
+current, canonical pages. Alis Build services run on Google Cloud (Cloud Run, Spanner,
+Pub/Sub, Terraform), so this covers most platform-infrastructure questions. If the tools are
+not present, research normally.
