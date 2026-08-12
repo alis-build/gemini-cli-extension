@@ -15,6 +15,7 @@ Use this extension to let Gemini CLI work with Alis Build organisations, product
 - The standing Alis Build Define-Build-Deploy primer (mental model + native skill discovery + CLI-first execution) always loaded from `GEMINI.md`
 - A remote Alis Build agent at `https://agent.alis.build`
 - A `SessionStart` hook that injects workspace service context inside Alis Build folders
+- Catalog metadata refreshed quietly at session start; the extension never installs or prunes native user skills
 
 ## Before You Start
 
@@ -90,6 +91,7 @@ This extension includes Alis Build workflow shortcuts:
 This extension bundles hooks (in `hooks/hooks.json`) that run automatically — no setup required:
 
 - **Service context (`SessionStart`)** — when a session opens inside an Alis Build service folder (`~/alis.build/<org>/build|define/…`), the package id and a pointer to the matching definitions ⇄ implementation counterpart are injected via `additionalContext`. Silent outside a workspace; requires `jq` — if `jq` is unavailable it exits cleanly and the CLI proceeds unmodified.
+- **Skills catalog refresh (`SessionStart`)** — runs `alis skills sync --cache-only` in the background. The CLI uses its 24-hour cache, and the explicit compatibility flag keeps older CLIs from installing or pruning native skills.
 
 The DBD primer and skills contract are not injected by a hook — they live in `GEMINI.md`, which Gemini loads as standing context every session.
 

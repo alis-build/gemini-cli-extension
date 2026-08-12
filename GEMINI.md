@@ -83,7 +83,9 @@ Skill discovery runs through the extension's `/alis-build:discover` command. The
 not need a wake word — they can simply describe what they want, and when the task is
 Alis-platform-shaped (products, neurons, blocks, protos and Define, builds, deploys, Spanner,
 Pub/Sub, Terraform under `infra/`) and no Alis skill is loaded yet, follow that command's
-flow to find and load the right registry skill. Once a skill is loaded, it owns execution.
+flow to find and load the right registry skill. The session-start hook refreshes catalog
+metadata only; it never installs or prunes native per-skill entries. A user may explicitly
+opt into those with `alis skills sync --native`. Once a skill is loaded, it owns execution.
 
 Direct DBD commands ("define it", "build it", "deploy it" on an already-known target) are
 deterministic — run the `alis` CLI directly (see **Executing DBD**); no skill is needed.

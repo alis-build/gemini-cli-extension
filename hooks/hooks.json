@@ -9,6 +9,13 @@
             "command": "${extensionPath}${/}hooks${/}inject-service-context.sh",
             "timeout": 5000,
             "description": "Point Alis Build service folders to their definitions/implementation counterpart and package id."
+          },
+          {
+            "name": "alis-refresh-skills-catalog",
+            "type": "command",
+            "command": "${extensionPath}${/}hooks${/}sync-skills.sh",
+            "timeout": 5000,
+            "description": "Refresh cached Alis Build skill metadata without installing native skills."
           }
         ]
       }
