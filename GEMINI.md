@@ -19,16 +19,8 @@ The core workflow on the Alis Build platform is **Define, Build, Deploy (DBD)**.
 development flows touch one or more of these steps — use this framing when helping with any
 Alis Build task, and walk the user through DBD rather than handing over a disconnected checklist.
 
-This guide is the standing how-to for Alis Build work. It carries three things:
-
-1. The **mental model** — what DBD is and where things live on disk.
-2. The **skills contract** — discovery is native: the `/alis-build:discover` command carries
-   the discovery flow, and its flow applies whenever the user describes platform-shaped work;
-   direct DBD commands run the CLI without a skill.
-3. The **execution contract** — how to actually run Define / Build / Deploy.
-
-> The `alis` CLI provides the *tools*; this guide provides *how to operate*. When the CLI's
-> own documentation (`alis docs`, `alis <cmd> --help`) is more precise than this guide (exact
+> The `alis` CLI provides the *tools*; this primer provides *how to operate*. When the CLI's
+> own documentation (`alis docs`, `alis <cmd> --help`) is more precise than this primer (exact
 > arguments, hard constraints), follow the CLI documentation.
 
 ## Define — lock the API / platform contract
@@ -52,14 +44,13 @@ This guide is the standing how-to for Alis Build work. It carries three things:
   instead.
 - **Import the service-level generated package, never the legacy product-level one.** The
   canonical Go import for a defined package `<org>.<product>.<service>.<vN>` is
-  `alis.build/<org>/<product>/<service>/<vN>` (the package id with dots as slashes, e.g.
-  `alis.zz.test.v3` → `alis.build/alis/zz/test/v3`). Older services may still import
-  `internal.<product>.<org>.services/protobuf/...` or `<product>.<org>.services/protobuf/...` —
-  that is the deprecated product-level package. Do **not** copy that import style from
-  neighboring services into new or edited code, even when every existing service in the repo
-  uses it; it resolves without error, so the only signal is the path shape. If the service you
-  are editing still depends on the legacy package, mention it and offer the
-  `dbd-migrate-to-neuron-protos` skill rather than extending the legacy usage.
+  `alis.build/<org>/<product>/<service>/<vN>` (dots as slashes, e.g. `alis.zz.test.v3` →
+  `alis.build/alis/zz/test/v3`). Older services may still import
+  `internal.<product>.<org>.services/protobuf/...` — the deprecated product-level package. It
+  resolves without error, so the only signal is the path shape: never copy it from neighboring
+  services, even when every service in the repo uses it. If the service you are editing still
+  depends on it, mention that and offer the `dbd-migrate-to-neuron-protos` skill rather than
+  extending the legacy usage.
 - **Build runs from a pushed commit, never your working tree.** `alis build` resolves the
   latest commit on the service's remote; edits that are uncommitted — or committed but not
   pushed — are invisible to the build server, so a rebuild will reproduce the exact error you
@@ -76,20 +67,24 @@ This guide is the standing how-to for Alis Build work. It carries three things:
   from the product context, not a guess.
 - Deploy makes the service reachable infrastructure (commonly Cloud Run plus supporting resources).
 - Validate end-to-end via the generated playground, usually `<neuron>/.playground/main_test.go`.
+  Note `.playground` is hidden AND git-ignored: `rg` and `git grep` skip it by default, so
+  repo-wide sweeps (e.g. import migrations) need `rg --hidden --no-ignore` to include it.
 
-## Skills — discovery is native
+## Skills — discovery is native and quiet
 
-Skill discovery runs through the extension's `/alis-build:discover` command. The user does
-not need a wake word — they can simply describe what they want, and when the task is
-Alis-platform-shaped (products, neurons, blocks, protos and Define, builds, deploys, Spanner,
-Pub/Sub, Terraform under `infra/`) and no Alis skill is loaded yet, follow that command's
-flow to find and load the right registry skill. The session-start hook refreshes catalog
-metadata only — skills need no local files to be discoverable and load live from the
-registry when used; `alis skills install <id>` stores a complete local copy. Once a skill
-is loaded, it owns execution.
+The `/alis-build:discover` command routes platform-shaped work to registry skills — no wake
+word needed when the task is platform-shaped. Discovery is local-first: probe with `alis skills suggest "<intended outcome>" --json` (instant, no
+network); a candidate is real only when its `distinctive` score is ≥ 3. No match means no
+skill — do the work without narrating discovery, and do not re-probe on follow-ups to the
+same task. `alis skills search` (registry, `--limit 3`) is only for explicit "find me a
+skill" asks or a genuinely ambiguous probe; on failure, fall back to the probe and continue.
+Skills load live from the registry (`alis skills load <id>`); once loaded, the skill owns
+execution. `alis skills install <id>` stores a complete local copy.
 
-Direct DBD commands ("define it", "build it", "deploy it" on an already-known target) are
-deterministic — run the `alis` CLI directly (see **Executing DBD**); no skill is needed.
+Not every task in an Alis workspace is platform work: Makefiles, generic bugs, tests, git
+operations, and log reading need no skill and no discovery. Direct DBD commands ("define it",
+"build it", "deploy it" on an already-known target) are deterministic — run the `alis` CLI
+directly (see **Executing DBD**); no skill is needed.
 
 After solving something new by hand, the user can say "capture this as a skill" — follow the
 `/alis-build:capture` flow to save it as a reusable skill for their team.
@@ -111,18 +106,26 @@ chains deterministic steps into one call:
 service's directory.
 
 - **Never hand-roll package-manager environments.** Do not run `go mod tidy`, `pnpm install`,
-  `pip install`, or `dart pub get` directly with hand-assembled `GOPROXY` / `GONOSUMDB` /
-  registry settings — resolving the private Alis registries yourself is error-prone and the
-  main reason those commands fail. `alis packages install` refreshes registry credentials
-  automatically and runs the right package manager(s) for you; `alis packages upgrade` bumps
-  the service's own Alis-defined package (`--all` for every package). Reserve direct
-  package-manager commands for diagnostics after `alis packages` has run.
+  `pip install`, or `dart pub get` with hand-assembled `GOPROXY` / `GONOSUMDB` / registry
+  settings — resolving the private Alis registries yourself is the main reason those commands
+  fail. `alis packages install` refreshes registry credentials and runs the right package
+  manager(s); `alis packages upgrade` bumps the service's own Alis-defined package (`--all`
+  for every package). Reserve direct package-manager commands for diagnostics after
+  `alis packages` has run.
 
 - **Pass `--json` for agent-driven calls** and let the CLI resolve context (latest pushed commit,
   Dockerfile paths, single-environment target). The full machine contract — stdout/stderr
   split, NDJSON progress, `--async` + `alis operations wait`, exit codes — is documented in
   the CLI itself: `alis docs output` and `alis docs exit-codes`. Never use shell `sleep` /
   `git ls-remote` loops to pass time.
+- **Diagnose before re-running.** When a Define/Build/Deploy fails or hangs, inspect before
+  retrying: `alis operations describe|wait <op>` for in-flight operations, `alis doctor --json`
+  for local environment faults, `alis context view --json` for products and environments, and
+  `alis ask "<question>"` for grounded answers drawn from the user's own past sessions,
+  support history, and skills. When a failure is platform-side (e.g. a platform-injected
+  credential error such as `invalid_grant`), it is not fixable in the repo: report it and
+  offer `alis support send-message` / `send-session` instead of retrying or scraping build
+  consoles.
 - **Auth recovery.** If a git push/pull to an Alis remote fails with an auth error, run
   `alis authorise <org>.<product> --json` (alias: `alis a`) once and retry — it installs the
   auto-refreshing Alis git credential helper and clears stale tokens. It is a one-time repair,
@@ -132,18 +135,17 @@ service's directory.
   code 3 until re-run with `--confirm-production`. That flag requires the user's explicit
   approval — never add it yourself; report the target to the user and ask (`alis docs safety`).
   Check which environments are production with `alis context view --json`.
-- **The CLI is self-documenting — consult it, don't memorise it.** This guide names only the
-  DBD core. Run `alis docs` for the complete agent operating manual (topics: overview, dbd,
-  output, exit-codes, safety, context, workflows), `alis -h` for the command surface, and
-  `alis <cmd> --help` for a command's flags. Treat that output as the source of truth; this
-  guide and the skills deliberately do not restate it.
+- **The CLI is self-documenting — consult it, don't memorise it.** Run `alis docs` for the
+  complete agent operating manual (overview, dbd, output, exit-codes, safety, context,
+  workflows), `alis -h` for the command surface, and `alis <cmd> --help` for a command's
+  flags. Treat that output as the source of truth; this primer and the skills deliberately
+  do not restate it.
 
 ## Google documentation — prefer the Developer Knowledge MCP
 
 When the Google Developer Knowledge MCP tools are available in this session
 (`search_documents`, `get_documents`, `answer_query`), prefer them over generic web search
-for Google-technology documentation — Google Cloud, Android, Flutter, Firebase, Go, web.dev,
-and other Google developer surfaces. They query Google's own documentation index and return
+for Google-technology documentation — they query Google's own documentation index and return
 current, canonical pages. Alis Build services run on Google Cloud (Cloud Run, Spanner,
 Pub/Sub, Terraform), so this covers most platform-infrastructure questions. If the tools are
 not present, research normally.

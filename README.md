@@ -12,7 +12,7 @@ Use this extension to let Gemini CLI work with Alis Build organisations, product
 
 ## What You Get
 
-- The standing Alis Build Define-Build-Deploy primer (mental model + native skill discovery + CLI-first execution) always loaded from `GEMINI.md`
+- The standing Alis Build Define-Build-Deploy primer (mental model + quiet, local-first skill discovery + CLI-first execution) always loaded from `GEMINI.md`
 - A remote Alis Build agent at `https://agent.alis.build`
 - A `SessionStart` hook that injects workspace service context inside Alis Build folders
 - Catalog metadata refreshed quietly at session start; the extension never installs or prunes native user skills
@@ -84,7 +84,7 @@ This extension includes Alis Build workflow shortcuts:
 /alis-build:getting-started
 ```
 
-`/alis-build:discover` finds and loads the right Alis Build skill for what you want to do (via `alis skills search`) — the standing `GEMINI.md` context also tells the agent to use this flow whenever you simply describe platform-shaped work, so no wake word is needed. `/alis-build:capture` turns work just completed in the session into a reusable skill for your team (also triggered by saying "capture this as a skill"). `/alis-build:getting-started` uses the Alis Build `getting-started` skill for the platform workflow and simpleapi quickstart. After updating a linked extension, run `/commands reload` or restart Gemini CLI.
+`/alis-build:discover` finds and loads the right Alis Build skill for what you want to do — local-first: it probes the local catalog (`alis skills suggest --json`, ~40ms, no network), loads a registry skill only on a distinctive match, and stays quiet otherwise; `alis skills search` (registry) is reserved for explicit "find me a skill" asks. The standing `GEMINI.md` context also tells the agent to use this flow whenever you simply describe platform-shaped work, so no wake word is needed — and NOT to fire it on generic coding (Makefiles, ordinary bugs, tests, git) just because you are inside a workspace. `/alis-build:capture` turns work just completed in the session into a reusable skill for your team (also triggered by saying "capture this as a skill"). `/alis-build:getting-started` uses the Alis Build `getting-started` skill for the platform workflow and simpleapi quickstart. After updating a linked extension, run `/commands reload` or restart Gemini CLI.
 
 ## Hooks
 
