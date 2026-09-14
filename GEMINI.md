@@ -1,10 +1,10 @@
 # Alis Build Extension Context
 
 You are working with Alis Build through the `alis` CLI and the optional
-`alis-build-agent` remote sub-agent. Prefer the `alis` CLI before guessing — use it to
+`alis-agent` remote sub-agent. Prefer the `alis` CLI before guessing — use it to
 inspect the active workspace, product, environment, build status, logs, deploys, and
 related service context (`alis context view --json`; `alis docs` is the operating manual).
-Use `@alis-build-agent` only when the workflow benefits from the hosted Alis Build agent
+Use `@alis-agent` only when the workflow benefits from the hosted Alis Build agent
 runtime. Do not trigger rebuilds or deploys unless the user asks. Keep responses concise
 and action-oriented.
 
@@ -60,12 +60,12 @@ Alis Build task, and walk the user through DBD rather than handing over a discon
 
 ## Skills — discovery is native and quiet
 
-The `/alis-build:discover` command owns skill routing for platform-shaped work — it is
+The `/alis:discover` command owns skill routing for platform-shaped work — it is
 quiet, local-first, and its own instructions carry the contract. Generic coding (Makefiles,
 ordinary bugs, tests, git operations, log reading) needs no discovery even inside a
 workspace, and direct DBD commands on a known target run the CLI directly — no skill. After
 solving something new by hand, the user can say "capture this as a skill" and the
-`/alis-build:capture` flow saves it for their team.
+`/alis:capture` flow saves it for their team.
 
 ## Executing DBD — the `alis` CLI
 

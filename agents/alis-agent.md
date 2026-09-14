@@ -1,6 +1,6 @@
 ---
 kind: remote
-name: alis-build-agent
+name: alis-agent
 agent_card_url: https://agent.alis.build/.well-known/agent-card.json
 auth:
   type: oauth
