@@ -99,8 +99,9 @@ directory.
   first: `alis operations describe|wait <op>`, `alis doctor --json`,
   `alis context view --json`, or `alis ask "<question>"` for grounded answers. A
   platform-side failure (e.g. a platform-injected credential error like `invalid_grant`) is
-  not fixable in the repo — report it and offer `alis support send-message`/`send-session`
-  instead of retrying.
+  not fixable in the repo — report it and offer the `share` command its error envelope
+  carries (`alis specialist send-message --attach-session …`) instead of retrying: the
+  session is what the platform team needs.
 - **Ideate context by reference.** When a conversation references an Alis Ideate project
   (`ideas/<id>`), run `alis ideate context <id>` first — one markdown document with
   everything the project holds; dig with `alis ideate specs|spec|stream|find`
